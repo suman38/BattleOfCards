@@ -15,6 +15,7 @@ import java.util.Map;
 
 import javax.swing.JPanel;
 
+import com.suman.game.screens.BattleScreen;
 import com.suman.game.screens.GameScreen;
 import com.suman.game.screens.HomeScreen;
 import com.suman.game.screens.PauseScreen;
@@ -25,7 +26,7 @@ import com.suman.game.utils.GameUtils;
 public class Game extends JPanel implements Runnable, MouseListener, MouseMotionListener, KeyListener {
 
 	private static final long serialVersionUID = 1L;
-	public final int GameWidth = 800; // GameHeight = (9/12)*GameWidth; // 800x600
+	public final int GameWidth = 1024; // GameHeight = (9/12)*GameWidth; // 800x600
 	public final int GameHeight = 600;
 
 	private Map<RenderingHints.Key, Object> renderMap;
@@ -36,7 +37,7 @@ public class Game extends JPanel implements Runnable, MouseListener, MouseMotion
 	private final int fps = 60;
 	private int delay = 1000 / fps;
 
-	private Screen homeScreen, gameScreen, pauseScreen;
+	private Screen homeScreen, gameScreen, pauseScreen,battleScreen;
 
 	private UIManager uiManager;
 
@@ -61,6 +62,7 @@ public class Game extends JPanel implements Runnable, MouseListener, MouseMotion
 		homeScreen = new HomeScreen(this);
 		gameScreen = new GameScreen(this);
 		pauseScreen = new PauseScreen(this);
+		battleScreen = new BattleScreen(this);
 
 		changeScreen(ScreenType.Home);
 
@@ -81,6 +83,10 @@ public class Game extends JPanel implements Runnable, MouseListener, MouseMotion
 
 		case Pause:
 			s = pauseScreen;
+			break;
+			
+		case Battle:
+			s = battleScreen;
 			break;
 
 		default:

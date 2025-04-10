@@ -23,7 +23,7 @@ public class HomeScreen extends Screen {
 				game.GameHeight / 2 - 25, new ClickInterface() {
 					@Override
 					public void click() {
-						game.changeScreen(ScreenType.Game);
+						game.changeScreen(ScreenType.Battle);
 					}
 				});
 		
