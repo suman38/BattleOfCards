@@ -17,91 +17,183 @@ import com.suman.game.utils.GameUtils;
 
 public class BattleScreen extends Screen {
 
-	private Rectangle spellPanel, messagePanel, battlePanel;
-	private String msg;
+	private Rectangle battlePanel, spellPanel, messagePanel;
 
 	private Player player;
 	private GameCharacter enemy;
 
-	private SpellCard selectedCard;
+	private String msg;
+	private int turns;
 
 	private Point mousepos;
 
-	private int turns;
+	private int selectedCard;
 
 	public BattleScreen(Game game) {
 		super(game);
 
 		battlePanel = new Rectangle(5, 5, game.GameWidth - 10, 265);
 		spellPanel = new Rectangle(5, game.GameHeight - 320, game.GameWidth - 10, 200);
-		messagePanel = new Rectangle(5, game.GameHeight - 110, game.GameWidth - 10, 100);
-
-		msg = new String();
-
-		turns = 0;
+		messagePanel = new Rectangle(5, game.GameHeight - 110, game.GameWidth - 10, 105);
 
 		player = new Player();
 		enemy = new GameCharacter("Alpha1", 1);
 
+		msg = "This is a sample Message that will be shown here\n Also this works upto 3 lines.";
+
 		mousepos = new Point();
+
+		selectedCard = -1;
 	}
 
-	private void unlockComboSpell(SpellCard c1, SpellCard c2) {
-		if ((c1.getCardId() == 2 || c1.getCardId() == 3) && (c2.getCardId() == 3 || c2.getCardId() == 2)) {
-			player.getCards().get(5).setActive(true);
-		}
+	@Override
+	public void tick() {
+		// TODO Auto-generated method stub
 
-		if ((c1.getCardId() == 2 || c1.getCardId() == 4) && (c2.getCardId() == 4 || c2.getCardId() == 2)) {
-			player.getCards().get(6).setActive(true);
-		}
+	}
 
-		if ((c1.getCardId() == 3 || c1.getCardId() == 4) && (c2.getCardId() == 4 || c2.getCardId() == 3)) {
-			player.getCards().get(7).setActive(true);
+	@Override
+	public void render(Graphics2D g2) {
+		drawBattlePanel(g2);
+		drawSpellPanel(g2);
+		drawMessagePanel(g2);
+
+		drawTooltip(g2);
+		drawDragAnimation(g2);
+		drawTurnCounter(g2);
+	}
+
+	private void drawBattlePanel(Graphics2D g2) {
+		g2.setColor(new Color(30, 30, 30));
+		g2.setStroke(new BasicStroke(5));
+		g2.draw(battlePanel);
+
+		g2.setColor(Color.GREEN);
+		g2.fillRect(battlePanel.x + 200, battlePanel.y + 150, 50, 50);
+
+		g2.setColor(Color.YELLOW);
+		g2.fillRect(battlePanel.x + 750, battlePanel.y + 150, 50, 50);
+
+		g2.setFont(GameUtils.mainFont);
+		g2.setColor(Color.WHITE);
+		g2.drawString("health: " + player.getHealth() + "/" + player.getMaxHealth(), battlePanel.x + 150,
+				battlePanel.y + 140);
+		g2.drawString("health: " + enemy.getHealth() + "/" + enemy.getMaxHealth(), battlePanel.x + 700,
+				battlePanel.y + 140);
+	}
+
+	private void drawSpellPanel(Graphics2D g2) {
+		g2.setColor(new Color(30, 30, 30));
+		g2.setStroke(new BasicStroke(5));
+		g2.draw(spellPanel);
+
+		for (int i = 0; i < player.getCards().size(); i++) {
+			SpellCard c = player.getCards().get(i);
+			c.draw(g2, spellPanel.x + (c.getOffsetX() * (i + 1)) + (c.getWidth() * i), (spellPanel.y + c.getOffsetY()));
 		}
 	}
 
-	private void updateTurnCounter() {
-		turns++;
-		for (SpellCard c : player.getCards()) {
-			c.updateCounter();
-		}
+	private void drawMessagePanel(Graphics2D g2) {
+		g2.setColor(new Color(30, 30, 30));
+		g2.setStroke(new BasicStroke(5));
+		g2.draw(messagePanel);
 
+		String[] lines = msg.split("\n");
+
+		g2.setColor(Color.WHITE);
+		g2.setFont(GameUtils.mainFont);
+
+		int height = g2.getFontMetrics(GameUtils.mainFont).getHeight();
+		for (int i = 0; i < lines.length; i++) {
+			g2.drawString(lines[i].trim(), messagePanel.x + 20, messagePanel.y + (i * height) + 30);
+		}
+	}
+
+	private void drawTooltip(Graphics2D g2) {
+		int x = mousepos.x - 30;
+		int y = mousepos.y;
+
+		g2.setStroke(new BasicStroke(2));
 		for (SpellCard c : player.getCards()) {
-			if (c.getCdCounter() == 0) {
-				if (c.getCardType() == CardType.Spell)
-					c.setActive(true);
-				else if (c.getCardType() == CardType.Combo)
-					c.setActive(false);
+			if (c.isHovering()) {
+				g2.setColor(new Color(20, 20, 20));
+				g2.fillRoundRect(x - 20, y + 20, 150, 100, 20, 20);
+
+				g2.setColor(Color.ORANGE);
+				g2.drawRoundRect(x - 20, y + 20, 150, 100, 20, 20);
+
+				g2.setFont(GameUtils.mainFont);
+				g2.drawString(c.getCardName(), x - 10, y + 45);
+
+				g2.setFont(GameUtils.cardFont);
+				g2.drawString("Ele: " + c.getCardElement().toString(), x - 10, y + 70);
+				g2.drawString("Type: " + c.getCardType().toString(), x - 10, y + 90);
+				g2.drawString(c.getCardEffect(), x - 10, y + 110);
 			}
 		}
 	}
 
-	private void useCard() {
-		enemy.hurt(selectedCard.getCardDamage());
-		msg = String.format("You hit %s for %d damage", enemy.getName(), selectedCard.getCardDamage());
-		selectedCard.setCdCounter(selectedCard.getCardCd());
-		if(selectedCard.getCardType() == CardType.Spell)
-			selectedCard.setActive(false);
-
-		updateTurnCounter();
+	private void drawDragAnimation(Graphics2D g2) {
+		if (selectedCard != -1) {
+			SpellCard c = player.getCards().get(selectedCard);
+			g2.setColor(Color.WHITE);
+			g2.fillRoundRect(mousepos.x - 25, mousepos.y - 25, 50, 50, 10, 10);
+			g2.drawImage(c.getCardIcon().getImage(), mousepos.x - 22, mousepos.y - 22, 44, 44, null);
+		}
 	}
 
-	@Override
-	public void keyTyped(KeyEvent e) {
-		// TODO Auto-generated method stub
+	private void drawTurnCounter(Graphics2D g2) {
+		g2.setColor(Color.WHITE);
+		g2.setFont(GameUtils.cardFont);
+		g2.drawString("Turns: " + turns, 10, 40);
+	}
+
+	private void useSelectedCard() {
+		SpellCard c = player.getCards().get(selectedCard);
+		if (c.isActive()) {
+			msg = String.format("You used %s and did %d damage", c.getCardName(), c.getCardDamage());
+
+			if (c.getCardType() == CardType.Spell) {
+				player.getCards().get(selectedCard).setCdTimer(c.getCoolDown());
+				player.getCards().get(selectedCard).setActive(false);
+			}
+
+			updateTurns();
+		} else {
+			msg = "Cannot use inactive cards!";
+		}
 
 	}
 
-	@Override
-	public void keyPressed(KeyEvent e) {
-		if (e.getKeyCode() == KeyEvent.VK_ESCAPE)
-			game.changeScreen(ScreenType.Pause);
+	private void activateCombo(int index1, int index2) {
+		int activeIndex = -1;
+		if (index1 != index2) {
+			if ((index1 == 2 && index2 == 3) || (index1 == 3 && index2 == 2)) {
+				activeIndex = 5;
+			} else if ((index1 == 2 && index2 == 4) || (index1 == 4 && index2 == 2)) {
+				activeIndex = 6;
+			} else if ((index1 == 3 && index2 == 4) || (index1 == 4 && index2 == 3)) {
+				activeIndex = 7;
+			}
+
+			if (!player.getCards().get(activeIndex).isActive()) {
+				player.getCards().get(activeIndex).setActive(true);
+				player.getCards().get(activeIndex).setCdTimer(player.getCards().get(activeIndex).getCoolDown());
+				msg = String.format("You successfully activated %s card",
+						player.getCards().get(activeIndex).getCardName());
+			} else {
+				msg = String.format("%s card is already active", player.getCards().get(activeIndex).getCardName());
+			}
+		} else {
+			msg = "Invalid action. Try again!";
+		}
 	}
 
-	@Override
-	public void keyReleased(KeyEvent e) {
-		// TODO Auto-generated method stub
-
+	private void updateTurns() {
+		turns++;
+		for (SpellCard c : player.getCards()) {
+			c.updateCooldown();
+		}
 	}
 
 	@Override
@@ -112,12 +204,12 @@ public class BattleScreen extends Screen {
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-
-		for (SpellCard c : player.getCards()) {
+		for (int i = 0; i < player.getCards().size(); i++) {
+			SpellCard c = player.getCards().get(i);
 			if (c.getBounds().contains(e.getX(), e.getY())) {
-				c.setSelected(true);
-				c.setToolTip(false);
-				selectedCard = c;
+				c.setDragging(true);
+				c.setHovering(false);
+				selectedCard = i;
 			}
 		}
 	}
@@ -125,25 +217,37 @@ public class BattleScreen extends Screen {
 	@Override
 	public void mouseReleased(MouseEvent e) {
 
-		if (battlePanel.contains(e.getX(), e.getY())) {
-			if (selectedCard.isActive())
-				useCard();
-			else
-				msg = "Cannot use inactive cards";
+		// dragging onto the battle panel
+		if (battlePanel.getBounds().contains(e.getX(), e.getY()) && selectedCard != -1) {
+			useSelectedCard();
+		}
+
+		for (int i = 0; i < player.getCards().size(); i++) {
+
+			SpellCard c = player.getCards().get(i);
+
+			// dragging a selected card onto another card
+			if (c.getBounds().contains(e.getX(), e.getY()) && selectedCard != -1) {
+
+				SpellCard sc = player.getCards().get(selectedCard);
+
+				// if both card are spells and active
+				if (c.getCardType() == CardType.Spell && sc.getCardType() == CardType.Spell) {
+					if (c.isActive() && sc.isActive()) {
+						// activate the combo
+						activateCombo(selectedCard, i);
+					} else {
+						msg = "Invalid action. Both spells must be active";
+					}
+				} else {
+					msg = "Invalid action. Cannot use combos and utility spells in that way.";
+				}
+			}
 		}
 
 		for (SpellCard c : player.getCards()) {
-			if (c.getBounds().contains(e.getX(), e.getY())) {
-				if (selectedCard.getCardType() == CardType.Spell && c.getCardType() == CardType.Spell
-						&& selectedCard != c) {
-
-					unlockComboSpell(selectedCard, c);
-
-					msg = String.format("You combined %s and %s", selectedCard.getCardName(), c.getCardName());
-				}
-			}
-
-			c.setSelected(false);
+			c.setDragging(false);
+			selectedCard = -1;
 		}
 	}
 
@@ -161,140 +265,48 @@ public class BattleScreen extends Screen {
 
 	@Override
 	public void mouseDragged(MouseEvent e) {
-		for (SpellCard c : player.getCards()) {
-			if (c.isSelected()) {
-				mousepos.x = e.getX();
-				mousepos.y = e.getY();
-			}
-		}
+		for (SpellCard c : player.getCards())
+			c.setHovering(false);
+
+		mousepos.x = e.getX();
+		mousepos.y = e.getY();
 	}
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
-		for (SpellCard card : player.getCards()) {
-			if (card.getBounds().contains(e.getX(), e.getY())) {
-				card.setToolTip(true);
+		for (SpellCard c : player.getCards()) {
+			if (c.getBounds().contains(e.getX(), e.getY())) {
+				c.setHovering(true);
 				mousepos.x = e.getX();
 				mousepos.y = e.getY();
-			} else
-				card.setToolTip(false);
-		}
-	}
-
-	@Override
-	public void tick() {
-
-		// Utility spells dont have any cd or timers, they can be used freely
-		// Common spells have their own cd
-		// Combo spells dont have cd, but they have activation timer
-		// this means they stay active for few turns.
-
-		// Update all the card timers here
-		// -------------------
-
-//		if (cards.get(5).isActive()) {
-//			timer++;
-//			if (timer >= 100) {
-//				cards.get(5).setActive(false);
-//				timer = 0;
-//			}
-//		}
-	}
-
-	@Override
-	public void render(Graphics2D g2) {
-		drawBattlePanel(g2);
-		drawSpellPanel(g2);
-		drawMessagePanel(g2);
-		drawToolTip(g2);
-		drawDragAnimation(g2);
-
-		g2.setColor(Color.WHITE);
-		g2.setFont(GameUtils.cardFont);
-		g2.drawString("Turns: " + turns, 10, 40);
-	}
-
-	private void drawBattlePanel(Graphics2D g2) {
-		g2.setColor(new Color(30, 30, 30));
-		g2.setStroke(new BasicStroke(5));
-		g2.draw(battlePanel);
-
-		g2.setColor(Color.GREEN);
-		g2.fillRect(battlePanel.x + 200, battlePanel.y + 150, 50, 50);
-
-		g2.setColor(Color.YELLOW);
-		g2.fillRect(battlePanel.x + 800, battlePanel.y + 150, 50, 50);
-
-		g2.setFont(GameUtils.mainFont);
-		g2.setColor(Color.WHITE);
-		g2.drawString("health: " + player.getHealth() + "/" + player.getMaxHealth(), battlePanel.x + 160,
-				battlePanel.y + 140);
-		g2.drawString("health: " + enemy.getHealth() + "/" + enemy.getMaxHealth(), battlePanel.x + 760,
-				battlePanel.y + 140);
-
-//		g2.setColor(Color.RED);
-//		g2.fillRoundRect(battlePanel.x + 150, battlePanel.y + 120, 150, 10, 10, 10);
-//		g2.fillRoundRect(battlePanel.x + 750, battlePanel.y + 120, 150, 10, 10, 10);
-	}
-
-	private void drawDragAnimation(Graphics2D g2) {
-		for (SpellCard sc : player.getCards()) {
-			if (sc.isSelected()) {
-				g2.setColor(Color.WHITE);
-				g2.fillRoundRect(mousepos.x - 25, mousepos.y - 25, 60, 60, 10, 10);
-				g2.drawImage(sc.getCardIcon().getImage(), mousepos.x - 20, mousepos.y - 20, 50, 50, null);
+			} else {
+				c.setHovering(false);
 			}
 		}
 	}
 
-	private void drawMessagePanel(Graphics2D g2) {
-		g2.setColor(new Color(30, 30, 30));
-		g2.setStroke(new BasicStroke(5));
-		g2.draw(messagePanel);
+	@Override
+	public void keyTyped(KeyEvent e) {
+		// TODO Auto-generated method stub
 
-		g2.setColor(Color.WHITE);
-		g2.setFont(GameUtils.mainFont);
-		int height = g2.getFontMetrics(GameUtils.mainFont).getAscent();
-		g2.drawString(msg, messagePanel.x + 10, messagePanel.y + height + 10);
 	}
 
-	private void drawToolTip(Graphics2D g2) {
+	@Override
+	public void keyPressed(KeyEvent e) {
+		// TODO Auto-generated method stub
 
-		int x = mousepos.x - 30;
-		int y = mousepos.y;
-
-		for (SpellCard c : player.getCards()) {
-			if (c.isToolTip()) {
-				g2.setColor(Color.BLACK);
-				g2.fillRoundRect(x - 20, y + 20, 150, 100, 20, 20);
-
-				g2.setColor(Color.WHITE);
-				g2.drawRoundRect(x - 20, y + 20, 150, 100, 20, 20);
-
-				g2.setFont(GameUtils.cardFont);
-				g2.drawString(c.getCardName(), x - 10, y + 45);
-				g2.drawString("Ele: " + c.getCardElement().toString(), x - 10, y + 65);
-				g2.drawString("Type: " + c.getCardType().toString(), x - 10, y + 85);
-				g2.drawString(c.getCardEffect(), x - 10, y + 105);
-			}
-		}
 	}
 
-	private void drawSpellPanel(Graphics2D g2) {
-		g2.setColor(new Color(30, 30, 30));
-		g2.setStroke(new BasicStroke(5));
-		g2.draw(spellPanel);
+	@Override
+	public void keyReleased(KeyEvent e) {
+		// TODO Auto-generated method stub
 
-		g2.setColor(Color.WHITE);
-		g2.setStroke(new BasicStroke(2));
-		for (int i = 0; i < player.getCards().size(); i++) {
-			SpellCard c = player.getCards().get(i);
-			c.draw(g2, spellPanel.x + (c.getOffsetX() * (i + 1)) + (c.getWidth() * i), spellPanel.y + c.getOffsetY());
-		}
 	}
 
 	@Override
 	public void loadButtons() {
 		// TODO Auto-generated method stub
+
 	}
+
 }

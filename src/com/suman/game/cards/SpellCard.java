@@ -16,7 +16,6 @@ public class SpellCard {
 	private String cardName;
 	private ImageIcon cardIcon;
 	private CardType cardType;
-	private boolean toolTip;
 	private String cardEffect;
 	private CardElement cardEle;
 	private boolean active;
@@ -24,8 +23,11 @@ public class SpellCard {
 	private Rectangle bounds;
 	private int cardDamage;
 
+	private boolean hovering;
+	private boolean dragging;
+
 	private int cardCD;
-	private int cdCounter;
+	private int cdTimer;
 
 	private final int cardWidth = 100, cardHeight = 140;
 	private final int offsetX = 24, offsetY = 20;
@@ -39,7 +41,7 @@ public class SpellCard {
 		this.cardEle = ele;
 		this.cardDamage = 5;
 		this.cardCD = 3;
-		this.cdCounter = 0;
+		this.cdTimer = 0;
 
 		bounds = new Rectangle(0, 0, cardWidth, cardHeight);
 		if (type == CardType.Combo)
@@ -48,13 +50,17 @@ public class SpellCard {
 			active = true;
 	}
 
-	public void updateCounter() {
-		if (cdCounter > 0)
-			cdCounter--;
-		else
-			cdCounter = 0;
-		
-//		System.out.println(cardName+" "+cdCounter);
+	public void updateCooldown() {
+		if (cdTimer > 0)
+			cdTimer--;
+		else {
+			cdTimer = 0;
+			
+			if(cardType == CardType.Spell)
+				active = true;
+			else if(cardType == CardType.Combo)
+				active = false;
+		}
 	}
 
 	public void draw(Graphics2D g2, int x, int y) {
@@ -91,7 +97,7 @@ public class SpellCard {
 				y + (cardHeight + metrics.getHeight()));
 
 		// Card Image icon
-		g2.fillRoundRect(x + (cardWidth / 2 - 40), y + 10, 80, 80, 10, 10);
+		g2.fillRect(x + (cardWidth / 2 - 38), y + 12, 76, 76);
 		g2.drawImage(cardIcon.getImage(), x + (cardWidth / 2 - 35), y + 15, 70, 70, null);
 	}
 
@@ -113,14 +119,6 @@ public class SpellCard {
 
 	public boolean isSelected() {
 		return selected;
-	}
-
-	public void setToolTip(boolean state) {
-		this.toolTip = state;
-	}
-
-	public boolean isToolTip() {
-		return toolTip;
 	}
 
 	public int getOffsetX() {
@@ -167,16 +165,31 @@ public class SpellCard {
 		return cardId;
 	}
 
-	public int getCardCd() {
+	public int getCoolDown() {
 		return cardCD;
 	}
 
-	public void setCdCounter(int cd) {
-		cdCounter = cd;
+	public void setCdTimer(int cdTimer) {
+		this.cdTimer = cdTimer;
 	}
-	
-	public int getCdCounter()
-	{
-		return cdCounter;
+
+	public int getCdTimer() {
+		return cdTimer;
+	}
+
+	public boolean isHovering() {
+		return hovering;
+	}
+
+	public void setHovering(boolean hovering) {
+		this.hovering = hovering;
+	}
+
+	public void setDragging(boolean dragging) {
+		this.dragging = dragging;
+	}
+
+	public boolean isDragging() {
+		return dragging;
 	}
 }
