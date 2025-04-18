@@ -12,15 +12,17 @@ import com.suman.game.cards.SpellCard;
 public class Player extends GameCharacter {
 
 	private List<SpellCard> cards;
+	
+	private int exp;
 
 	public Player() {
 		super("Suman",1);
 		
 		cards = new ArrayList<SpellCard>();
 		cards.add(new SpellCard(0, "Attack", new ImageIcon(getClass().getResource("/spellcards/water16x16.png")),
-				CardType.Utility, CardElement.Normal, "Dmg: 999"));
+				CardType.Utility, CardElement.Normal, "Dmg: "+attack));
 		cards.add(new SpellCard(1, "Defense", new ImageIcon(getClass().getResource("/spellcards/water16x16.png")),
-				CardType.Utility, CardElement.Normal, "Def: 999"));
+				CardType.Utility, CardElement.Normal, "Def: "+defence));
 		cards.add(new SpellCard(2, "Heat Blast", new ImageIcon(getClass().getResource("/spellcards/water16x16.png")),
 				CardType.Spell, CardElement.Fire, "Dmg: 999")); // burst attack
 		cards.add(new SpellCard(3, "Fire Fang", new ImageIcon(getClass().getResource("/spellcards/water16x16.png")),
@@ -36,6 +38,14 @@ public class Player extends GameCharacter {
 		
 	}
 
+	public void addExp(int exp) {
+		this.exp += exp;
+		if (this.exp >= 100) {
+			this.exp -= 100;
+			this.level++;
+		}
+	}
+	
 	public List<SpellCard> getCards() {
 		return cards;
 	}

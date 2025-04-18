@@ -13,11 +13,9 @@ import com.suman.game.utils.ClickInterface;
 import com.suman.game.utils.GameUtils;
 
 public class UIManager {
-	private Game game;
 	private List<ScreenButton> btns;
 
-	public UIManager(Game game) {
-		this.game = game;
+	public UIManager() {
 		btns = new ArrayList<ScreenButton>();
 	}
 

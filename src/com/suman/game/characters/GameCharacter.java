@@ -2,29 +2,21 @@ package com.suman.game.characters;
 
 public class GameCharacter {
 
-	private String name;
-	private int health, maxHealth;
-	private int mana, maxMana;
-	private int attack, defence;
-	private int level;
-	private int exp;
+	protected String name;
+	protected int health, maxHealth;
+	protected int mana, maxMana;
+	protected int attack, defence;
+	protected int level;
 
-	public GameCharacter(String name,int level) {
+	public GameCharacter(String name, int level) {
 		this.name = name;
-		maxHealth = 100;
-		health = maxHealth;
-		maxMana = 100;
-		mana = maxMana;
 		this.level = level;
-		attack = 2 * this.level;
-		defence = 1 * this.level;
-	}
-
-	public void checkLevelUp() {
-		if (this.exp >= 100) {
-			this.exp -= 100;
-			level++;
-		}
+		attack = 2 * level;
+		defence = 1 * level;
+		maxHealth = 100 + (25 * level);
+		health = maxHealth;
+		maxMana = 100 + (15 * level);
+		mana = maxMana;
 	}
 
 	public void hurt(int damage) {
@@ -37,14 +29,6 @@ public class GameCharacter {
 		health += heal;
 		if (health >= maxHealth)
 			health = maxHealth;
-	}
-
-	public int getExp() {
-		return exp;
-	}
-
-	public void setExp(int exp) {
-		this.exp = exp;
 	}
 
 	public String getName() {
@@ -61,6 +45,10 @@ public class GameCharacter {
 
 	public int getMana() {
 		return mana;
+	}
+
+	public void setMana(int mana) {
+		this.mana = mana;
 	}
 
 	public int getMaxMana() {

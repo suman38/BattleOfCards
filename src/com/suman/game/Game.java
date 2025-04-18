@@ -57,7 +57,7 @@ public class Game extends JPanel implements Runnable, MouseListener, MouseMotion
 		renderMap.put(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		renderMap.put(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
-		uiManager = new UIManager(this);
+		uiManager = new UIManager();
 
 		homeScreen = new HomeScreen(this);
 		gameScreen = new GameScreen(this);

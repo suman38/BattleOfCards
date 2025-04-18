@@ -22,6 +22,7 @@ public class SpellCard {
 	private boolean selected;
 	private Rectangle bounds;
 	private int cardDamage;
+	private int spellMana;
 
 	private boolean hovering;
 	private boolean dragging;
@@ -39,9 +40,16 @@ public class SpellCard {
 		this.cardType = type;
 		this.cardEffect = effect;
 		this.cardEle = ele;
-		this.cardDamage = 5;
+		this.cardDamage = 2;
 		this.cardCD = 3;
 		this.cdTimer = 0;
+
+		if (cardType == CardType.Utility)
+			this.spellMana = 5;
+		else if (cardType == CardType.Spell)
+			this.spellMana = 15;
+		else if (cardType == CardType.Combo)
+			this.spellMana = 35;
 
 		bounds = new Rectangle(0, 0, cardWidth, cardHeight);
 		if (type == CardType.Combo)
@@ -55,10 +63,10 @@ public class SpellCard {
 			cdTimer--;
 		else {
 			cdTimer = 0;
-			
-			if(cardType == CardType.Spell)
+
+			if (cardType == CardType.Spell)
 				active = true;
-			else if(cardType == CardType.Combo)
+			else if (cardType == CardType.Combo)
 				active = false;
 		}
 	}
@@ -167,6 +175,10 @@ public class SpellCard {
 
 	public int getCoolDown() {
 		return cardCD;
+	}
+
+	public int getSpellMana() {
+		return spellMana;
 	}
 
 	public void setCdTimer(int cdTimer) {
